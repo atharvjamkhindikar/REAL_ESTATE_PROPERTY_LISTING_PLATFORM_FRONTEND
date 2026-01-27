@@ -1,0 +1,145 @@
+.property-card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.property-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.property-image {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    background-color: #f0f0f0;
+}
+
+.property-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.no-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #999;
+    font-size: 16px;
+}
+
+.listing-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #007bff;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.favorite-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.favorite-btn:hover {
+    transform: scale(1.1);
+    background-color: white;
+}
+
+.favorite-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.favorite-btn.favorited {
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+.property-details {
+    padding: 20px;
+}
+
+.property-details h3 {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+    color: #333;
+}
+
+.property-price {
+    font-size: 24px;
+    font-weight: bold;
+    color: #28a745;
+    margin: 10px 0;
+}
+
+.property-address {
+    color: #666;
+    font-size: 14px;
+    margin: 10px 0;
+}
+
+.property-features {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+    padding: 10px 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+}
+
+.feature {
+    font-size: 14px;
+    color: #555;
+}
+
+.feature strong {
+    color: #333;
+}
+
+.property-type {
+    color: #777;
+    font-size: 13px;
+    margin: 10px 0;
+}
+
+.view-details-btn {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.view-details-btn:hover {
+    background-color: #0056b3;
+}

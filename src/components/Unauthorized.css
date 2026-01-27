@@ -1,0 +1,100 @@
+.unauthorized-container {
+    min-height: calc(100vh - 60px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-color: #f8f9fa;
+}
+
+.unauthorized-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 50px;
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+}
+
+.unauthorized-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+}
+
+.unauthorized-card h1 {
+    color: #dc3545;
+    font-size: 32px;
+    margin-bottom: 15px;
+}
+
+.unauthorized-card > p {
+    color: #6c757d;
+    font-size: 18px;
+    margin-bottom: 30px;
+}
+
+.user-info {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    text-align: left;
+}
+
+.user-info p {
+    margin: 8px 0;
+    color: #495057;
+}
+
+.role-badge {
+    background-color: #007bff;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.subscription-badge {
+    background-color: #28a745;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s;
+}
+
+.btn-secondary:hover {
+    background-color: #545b62;
+}
