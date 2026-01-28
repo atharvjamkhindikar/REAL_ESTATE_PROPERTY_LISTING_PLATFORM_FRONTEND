@@ -117,6 +117,230 @@
     background-color: #5a6268;
 }
 
+/* Image Upload Section */
+.image-upload-section {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.image-upload-section h3 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    color: #333;
+    font-size: 18px;
+}
+
+.image-upload-section > p {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #666;
+    font-size: 14px;
+}
+
+.image-input-wrapper {
+    margin-bottom: 20px;
+}
+
+.image-upload-label {
+    display: block;
+    padding: 30px;
+    border: 2px dashed #007bff;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.image-upload-label:hover {
+    border-color: #0056b3;
+    background: #f0f8ff;
+}
+
+.image-upload-label span {
+    display: block;
+    font-weight: 500;
+    color: #007bff;
+    margin-bottom: 5px;
+}
+
+.image-upload-label small {
+    display: block;
+    color: #666;
+    font-size: 12px;
+}
+
+.image-input-hidden {
+    display: none;
+}
+
+/* Image Previews */
+.image-previews {
+    margin-top: 20px;
+}
+
+.image-previews h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 14px;
+}
+
+.preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.preview-item {
+    position: relative;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.preview-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.preview-item img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+}
+
+.preview-info {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.preview-item:hover .preview-info {
+    opacity: 1;
+}
+
+.primary-badge {
+    background: #28a745;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.remove-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.remove-btn:hover {
+    background: #c82333;
+    transform: scale(1.1);
+}
+
+/* Image URL input styles */
+.url-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.url-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.url-row input[type="url"] {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.url-row input[type="url"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.url-remove-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: none;
+    background: #dc3545;
+    color: white;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.url-remove-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.url-add-btn {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border: 2px dashed #667eea;
+    background: #f6f7ff;
+    color: #333;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    width: 100%;
+}
+
+.url-add-btn:hover {
+    background: #eef0ff;
+}
+
+.url-preview {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    background: #fafafa;
+    border: 1px solid #eaeaea;
+}
+
+.url-preview img {
+    width: 100%;
+    max-height: 260px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-top: 8px;
+}
+
 @media (max-width: 768px) {
     .form-container {
         padding: 20px;
@@ -128,5 +352,22 @@
     
     .form-actions {
         flex-direction: column;
+    }
+
+    .preview-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+
+    .preview-item img {
+        height: 120px;
+    }
+
+    .url-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .url-remove-btn {
+        width: 100%;
     }
 }

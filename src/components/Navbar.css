@@ -124,29 +124,39 @@
 .user-section {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 0 10px;
+    gap: 4px;
+    padding: 0 15px;
+    margin-left: auto;
 }
 
 .user-info-nav {
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: flex-start;
+    gap: 2px;
+    margin-right: 0;
 }
 
 .user-name {
-    color: white;
-    font-weight: 600;
-    font-size: 14px;
+    color: white !important;
+    font-weight: 700;
+    font-size: 16px;
+    white-space: nowrap;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    opacity: 1 !important;
+    display: block;
 }
 
 .user-badge {
     background: linear-gradient(135deg, #e74c3c, #c0392b);
-    color: white;
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: 500;
+    color: white !important;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 1 !important;
+    display: inline-block;
 }
 
 .user-badge.FREE { background: #95a5a6; }
@@ -156,24 +166,33 @@
 
 .logout-btn {
     background-color: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
-    padding: 8px 15px !important;
+    padding: 4px 10px !important;
+    color: #ffffff;
+    font-weight: 600;
+    margin: 0;
+    flex-shrink: 0;
+    height: fit-content;
 }
 
 .logout-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: #ffffff;
+    color: #ffffff;
 }
 
 @media (max-width: 1024px) {
     .user-section {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 10px 20px;
-        gap: 5px;
+        flex-direction: row;
+        align-items: center;
+        padding: 15px 20px;
+        gap: 10px;
+        margin-left: 0;
+        border-top: 1px solid #34495e;
+        width: 100%;
     }
     
     .user-info-nav {
@@ -181,10 +200,13 @@
         align-items: center;
         gap: 10px;
     }
-    
+
+    .user-name {
+        font-size: 15px;
+    }
+
     .logout-btn {
-        width: 100%;
-        text-align: center;
+        margin-left: auto;
     }
 }
 

@@ -22,7 +22,7 @@ const Navbar = () => {
         <nav className="navbar">
             <div className="nav-container">
                 <Link to="/" className="nav-logo">
-                    🏠 Real Estate Platform
+                    🏠 Real Estate Hub
                 </Link>
                 <button className="mobile-menu-toggle" onClick={toggleMenu}>
                     ☰
@@ -33,7 +33,13 @@ const Navbar = () => {
                             Home
                         </Link>
                     </li>
-                    
+
+                    <li className="nav-item">
+                        <Link to="/builders" className="nav-link" onClick={() => setMenuOpen(false)}>
+                            🏢 Builders
+                        </Link>
+                    </li>
+
                     {/* BASIC+ subscription features */}
                     {isAuthenticated && hasSubscription('BASIC') && (
                         <>
@@ -44,7 +50,7 @@ const Navbar = () => {
                             </li>
                             <li className="nav-item">
                                 <Link to="/favorites" className="nav-link" onClick={() => setMenuOpen(false)}>
-                                    💙 Favorites
+                                    ❤️ Favorites
                                 </Link>
                             </li>
                             <li className="nav-item">
@@ -80,7 +86,7 @@ const Navbar = () => {
                     {isAuthenticated ? (
                         <li className="nav-item user-section">
                             <div className="user-info-nav">
-                                <span className="user-name">{user.firstName}</span>
+                                <span className="user-name">{user.firstName} {user.lastName}</span>
                                 <span className="user-badge">{user.subscriptionType}</span>
                             </div>
                             <button onClick={handleLogout} className="nav-link logout-btn">
@@ -88,11 +94,23 @@ const Navbar = () => {
                             </button>
                         </li>
                     ) : (
-                        <li className="nav-item">
-                            <Link to="/login" className="nav-link nav-link-btn" onClick={() => setMenuOpen(false)}>
-                                Login
-                            </Link>
-                        </li>
+                        <>
+                            <li className="nav-item">
+                                <Link to="/login" className="nav-link nav-link-btn" onClick={() => setMenuOpen(false)}>
+                                    Login
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link to="/register" className="nav-link" onClick={() => setMenuOpen(false)}>
+                                    Sign Up
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link to="/agent-login" className="nav-link" onClick={() => setMenuOpen(false)}>
+                                    Agent Login
+                                </Link>
+                            </li>
+                        </>
                     )}
                 </ul>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { userService } from '../services/api';
 import './UserManagement.css';
 
@@ -6,75 +6,86 @@ const UserManagement = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(null);
     const [page, setPage] = useState(0);
+    const [pageSize] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [selectedUser, setSelectedUser] = useState(null);
+    const [showCreateForm, setShowCreateForm] = useState(false);
+    const [editingUserId, setEditingUserId] = useState(null);
+
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
         email: '',
-        phone: '',
         password: '',
-        userType: 'BUYER',
-        role: 'USER',
-        subscriptionType: 'FREE',
+        phone: '',
+        userType: 'CUSTOMER',
+        company: '',
+        licenseNumber: '',
+        bio: '',
+        role: 'USER'
     });
 
-    useEffect(() => {
-        fetchUsers();
-    }, [page]);
-
-    const fetchUsers = async () => {
+    // Fetch users with pagination and filters
+    const fetchUsers = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await userService.getAllUsers(page, 10);
-            const data = response.data || {};
-            // Handle ApiResponse wrapper from backend
-            const actualData = data.data || data;
-            // Handle both paginated response and direct array
-            if (Array.isArray(actualData)) {
-                setUsers(actualData);
-                setTotalPages(1);
-            } else {
-                setUsers(actualData.content || []);
-                setTotalPages(actualData.totalPages || 0);
-            }
             setError(null);
+
+            let response;
+
+            // Get paginated users
+            response = await userService.getAllUsersPaged(page, pageSize, 'id', 'ASC');
+            const pageData = response.data.data;
+
+            setUsers(pageData.content || []);
+            setTotalPages(pageData.totalPages || 0);
         } catch (err) {
-            setError('Failed to fetch users. Please try again later.');
+            setError('Failed to fetch users. Please try again.');
             console.error('Error fetching users:', err);
             setUsers([]);
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, pageSize]);
+
+    // Call fetchUsers when component mounts or dependencies change
+    useEffect(() => {
+        fetchUsers();
+    }, [fetchUsers]);
 
     const handleInputChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value,
+        }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
+        setSuccess(null);
+
         try {
             // Create a clean payload - don't send empty password on update
             const payload = { ...formData };
-            if (selectedUser && !payload.password) {
+            if (editingUserId && !payload.password) {
                 delete payload.password;
             }
             
-            if (selectedUser) {
-                await userService.updateUser(selectedUser.id, payload);
+            if (editingUserId) {
+                await userService.updateUser(editingUserId, payload);
+                setSuccess('User updated successfully!');
             } else {
                 await userService.createUser(payload);
+                setSuccess('User created successfully!');
             }
-            setShowAddModal(false);
+
             resetForm();
-            fetchUsers();
+            setShowCreateForm(false);
+            await fetchUsers();
+            setTimeout(() => setSuccess(null), 3000);
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'Failed to save user. Please try again.';
             setError(errorMessage);
@@ -83,36 +94,45 @@ const UserManagement = () => {
     };
 
     const handleEdit = (user) => {
-        setSelectedUser(user);
+        setEditingUserId(user.id);
         setFormData({
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
             phone: user.phone || '',
             password: '',
-            userType: user.userType,
-            role: user.role,
-            subscriptionType: user.subscriptionType || 'FREE',
+            userType: user.userType || 'CUSTOMER',
+            company: user.company || '',
+            licenseNumber: user.licenseNumber || '',
+            bio: user.bio || '',
+            role: user.role || 'USER'
         });
-        setShowAddModal(true);
+        setShowCreateForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this user?')) {
-            try {
-                await userService.deleteUser(id);
-                fetchUsers();
-            } catch (err) {
-                setError('Failed to delete user.');
-                console.error('Error deleting user:', err);
-            }
+        if (!window.confirm('Are you sure you want to delete this user?')) {
+            return;
+        }
+
+        try {
+            await userService.deleteUser(id);
+            setSuccess('User deleted successfully!');
+            await fetchUsers();
+            setTimeout(() => setSuccess(null), 3000);
+        } catch (err) {
+            setError('Failed to delete user.');
+            console.error('Error deleting user:', err);
         }
     };
 
     const handleActivate = async (id) => {
         try {
             await userService.activateUser(id);
-            fetchUsers();
+            setSuccess('User activated successfully!');
+            await fetchUsers();
+            setTimeout(() => setSuccess(null), 3000);
         } catch (err) {
             setError('Failed to activate user.');
             console.error('Error activating user:', err);
@@ -122,7 +142,9 @@ const UserManagement = () => {
     const handleDeactivate = async (id) => {
         try {
             await userService.deactivateUser(id);
-            fetchUsers();
+            setSuccess('User deactivated successfully!');
+            await fetchUsers();
+            setTimeout(() => setSuccess(null), 3000);
         } catch (err) {
             setError('Failed to deactivate user.');
             console.error('Error deactivating user:', err);
@@ -136,11 +158,13 @@ const UserManagement = () => {
             email: '',
             phone: '',
             password: '',
-            userType: 'BUYER',
-            role: 'USER',
-            subscriptionType: 'FREE',
+            userType: 'CUSTOMER',
+            company: '',
+            licenseNumber: '',
+            bio: '',
+            role: 'USER'
         });
-        setSelectedUser(null);
+        setEditingUserId(null);
         setError(null);
     };
 
@@ -151,24 +175,37 @@ const UserManagement = () => {
     return (
         <div className="user-management-container">
             <div className="header">
-                <h1>User Management</h1>
-                <button 
+                <h1>👥 User Management</h1>
+                <button
                     className="btn-primary" 
                     onClick={() => {
                         resetForm();
-                        setShowAddModal(true);
+                        setShowCreateForm(true);
                     }}
                 >
                     + Add User
                 </button>
             </div>
 
-            {error && <div className="error-message">{error}</div>}
+            {error && (
+                <div className="error-message">
+                    ⚠️ {error}
+                    <button onClick={() => setError(null)} className="close-msg">×</button>
+                </div>
+            )}
+
+            {success && (
+                <div className="success-message">
+                    ✓ {success}
+                    <button onClick={() => setSuccess(null)} className="close-msg">×</button>
+                </div>
+            )}
 
             <div className="users-table">
                 <table>
                     <thead>
                         <tr>
+                            <th>ID</th>
                             <th>Name</th>
                             <th>Email</th>
                             <th>Phone</th>
@@ -179,166 +216,218 @@ const UserManagement = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {users.map((user) => (
-                            <tr key={user.id}>
-                                <td>{`${user.firstName} ${user.lastName}`}</td>
-                                <td>{user.email}</td>
-                                <td>{user.phone || 'N/A'}</td>
-                                <td>{user.userType}</td>
-                                <td>{user.role}</td>
-                                <td>
-                                    <span className={`status ${user.active ? 'active' : 'inactive'}`}>
-                                        {user.active ? 'Active' : 'Inactive'}
-                                    </span>
-                                </td>
-                                <td className="actions">
-                                    <button onClick={() => handleEdit(user)} className="btn-edit">
-                                        Edit
-                                    </button>
-                                    {user.active ? (
-                                        <button onClick={() => handleDeactivate(user.id)} className="btn-warning">
-                                            Deactivate
-                                        </button>
-                                    ) : (
-                                        <button onClick={() => handleActivate(user.id)} className="btn-success">
-                                            Activate
-                                        </button>
-                                    )}
-                                    <button onClick={() => handleDelete(user.id)} className="btn-delete">
-                                        Delete
-                                    </button>
-                                </td>
+                        {users.length === 0 ? (
+                            <tr>
+                                <td colSpan="8" className="no-data">No users found</td>
                             </tr>
-                        ))}
+                        ) : (
+                            users.map((user) => (
+                                <tr key={user.id}>
+                                    <td>{user.id}</td>
+                                    <td>{`${user.firstName} ${user.lastName}`}</td>
+                                    <td>{user.email}</td>
+                                    <td>{user.phone || 'N/A'}</td>
+                                    <td>{user.userType}</td>
+                                    <td>{user.role}</td>
+                                    <td>
+                                        <span className={`status ${user.active ? 'active' : 'inactive'}`}>
+                                            {user.active ? '✓ Active' : '✗ Inactive'}
+                                        </span>
+                                    </td>
+                                    <td className="actions">
+                                        <button onClick={() => handleEdit(user)} className="btn-edit" title="Edit">
+                                            ✎ Edit
+                                        </button>
+                                        {user.active ? (
+                                            <button onClick={() => handleDeactivate(user.id)} className="btn-warning" title="Deactivate">
+                                                Deactivate
+                                            </button>
+                                        ) : (
+                                            <button onClick={() => handleActivate(user.id)} className="btn-success" title="Activate">
+                                                Activate
+                                            </button>
+                                        )}
+                                        <button onClick={() => handleDelete(user.id)} className="btn-delete" title="Delete">
+                                            🗑️ Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>
 
-            <div className="pagination">
-                <button 
-                    onClick={() => setPage(page - 1)} 
-                    disabled={page === 0}
-                    className="btn-page"
-                >
-                    Previous
-                </button>
-                <span>Page {page + 1} of {totalPages}</span>
-                <button 
-                    onClick={() => setPage(page + 1)} 
-                    disabled={page === totalPages - 1}
-                    className="btn-page"
-                >
-                    Next
-                </button>
-            </div>
+            {totalPages > 1 && (
+                <div className="pagination">
+                    <button
+                        onClick={() => setPage(page - 1)}
+                        disabled={page === 0}
+                        className="btn-page"
+                    >
+                        ← Previous
+                    </button>
+                    <span className="page-info">Page {page + 1} of {totalPages}</span>
+                    <button
+                        onClick={() => setPage(page + 1)}
+                        disabled={page === totalPages - 1}
+                        className="btn-page"
+                    >
+                        Next →
+                    </button>
+                </div>
+            )}
 
-            {showAddModal && (
+            {showCreateForm && (
                 <div className="modal-overlay">
                     <div className="modal">
                         <div className="modal-header">
-                            <h2>{selectedUser ? 'Edit User' : 'Add New User'}</h2>
-                            <button onClick={() => setShowAddModal(false)} className="close-btn">
+                            <h2>{editingUserId ? '✎ Edit User' : '➕ Add New User'}</h2>
+                            <button onClick={() => {
+                                setShowCreateForm(false);
+                                resetForm();
+                            }} className="close-btn">
                                 ×
                             </button>
                         </div>
                         <form onSubmit={handleSubmit}>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>First Name*</label>
+                                    <input
+                                        type="text"
+                                        name="firstName"
+                                        value={formData.firstName}
+                                        onChange={handleInputChange}
+                                        placeholder="John"
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Last Name*</label>
+                                    <input
+                                        type="text"
+                                        name="lastName"
+                                        value={formData.lastName}
+                                        onChange={handleInputChange}
+                                        placeholder="Doe"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Email*</label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        placeholder="john@example.com"
+                                        required
+                                        disabled={!!editingUserId}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Phone Number*</label>
+                                    <input
+                                        type="tel"
+                                        name="phone"
+                                        value={formData.phone}
+                                        onChange={handleInputChange}
+                                        placeholder="+1234567890"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Password {editingUserId && '(leave blank to keep current)'}</label>
+                                    <input
+                                        type="password"
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleInputChange}
+                                        placeholder="At least 6 characters"
+                                        required={!editingUserId}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>User Type*</label>
+                                    <select
+                                        name="userType"
+                                        value={formData.userType}
+                                        onChange={handleInputChange}
+                                        required
+                                    >
+                                        <option value="CUSTOMER">Customer</option>
+                                        <option value="AGENT">Agent</option>
+                                        <option value="ADMIN">Admin</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Role*</label>
+                                    <select
+                                        name="role"
+                                        value={formData.role}
+                                        onChange={handleInputChange}
+                                        required
+                                    >
+                                        <option value="USER">User</option>
+                                        <option value="AGENT">Agent</option>
+                                        <option value="ADMIN">Admin</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Company</label>
+                                    <input
+                                        type="text"
+                                        name="company"
+                                        value={formData.company}
+                                        onChange={handleInputChange}
+                                        placeholder="Company name"
+                                    />
+                                </div>
+                            </div>
+
+                            {(formData.userType === 'AGENT' || formData.role === 'AGENT') && (
+                                <div className="form-group">
+                                    <label>License Number</label>
+                                    <input
+                                        type="text"
+                                        name="licenseNumber"
+                                        value={formData.licenseNumber}
+                                        onChange={handleInputChange}
+                                        placeholder="License number"
+                                    />
+                                </div>
+                            )}
+
                             <div className="form-group">
-                                <label>First Name*</label>
-                                <input
-                                    type="text"
-                                    name="firstName"
-                                    value={formData.firstName}
+                                <label>Bio</label>
+                                <textarea
+                                    name="bio"
+                                    value={formData.bio}
                                     onChange={handleInputChange}
-                                    required
+                                    placeholder="User biography"
+                                    rows="3"
                                 />
                             </div>
-                            <div className="form-group">
-                                <label>Last Name*</label>
-                                <input
-                                    type="text"
-                                    name="lastName"
-                                    value={formData.lastName}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Email*</label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Phone Number*</label>
-                                <input
-                                    type="tel"
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Password{!selectedUser && '*'}</label>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                    required={!selectedUser}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>User Type*</label>
-                                <select
-                                    name="userType"
-                                    value={formData.userType}
-                                    onChange={handleInputChange}
-                                    required
-                                >
-                                    <option value="BUYER">Buyer</option>
-                                    <option value="SELLER">Seller</option>
-                                    <option value="AGENT">Agent</option>
-                                </select>
-                            </div>
-                            <div className="form-group">
-                                <label>Role*</label>
-                                <select
-                                    name="role"
-                                    value={formData.role}
-                                    onChange={handleInputChange}
-                                    required
-                                >
-                                    <option value="GUEST">Guest</option>
-                                    <option value="USER">User</option>
-                                    <option value="SUBSCRIBER">Subscriber</option>
-                                    <option value="ADMIN">Admin</option>
-                                </select>
-                            </div>
-                            <div className="form-group">
-                                <label>Subscription</label>
-                                <select
-                                    name="subscriptionType"
-                                    value={formData.subscriptionType}
-                                    onChange={handleInputChange}
-                                >
-                                    <option value="FREE">Free</option>
-                                    <option value="BASIC">Basic</option>
-                                    <option value="PREMIUM">Premium</option>
-                                    <option value="ENTERPRISE">Enterprise</option>
-                                </select>
-                            </div>
-                            {error && <div className="form-error">{error}</div>}
+
                             <div className="form-actions">
-                                <button type="button" onClick={() => setShowAddModal(false)} className="btn-cancel">
+                                <button type="button" onClick={() => {
+                                    setShowCreateForm(false);
+                                    resetForm();
+                                }} className="btn-cancel">
                                     Cancel
                                 </button>
                                 <button type="submit" className="btn-submit">
-                                    {selectedUser ? 'Update' : 'Create'}
+                                    {editingUserId ? 'Update User' : 'Create User'}
                                 </button>
                             </div>
                         </form>
@@ -350,3 +439,9 @@ const UserManagement = () => {
 };
 
 export default UserManagement;
+
+
+
+
+
+

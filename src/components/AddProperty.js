@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { propertyService } from '../services/api';
+import { propertyService, propertyImageService } from '../services/api';
 import './AddProperty.css';
 
 const AddProperty = () => {
@@ -19,9 +19,16 @@ const AddProperty = () => {
         bathrooms: '',
         squareFeet: '',
         yearBuilt: '',
-        imageUrl: '',
         available: true,
     });
+
+    // Image upload state (FILES - optional if backend supports multipart)
+    const [selectedImages, setSelectedImages] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
+    const [uploadingImages, setUploadingImages] = useState(false);
+
+    // Image URL state (PRIMARY FIX - backend requires imageUrl)
+    const [imageUrls, setImageUrls] = useState(['']);
 
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
@@ -36,6 +43,43 @@ const AddProperty = () => {
         if (errors[name]) {
             setErrors({ ...errors, [name]: '' });
         }
+    };
+
+    // Handle image file selection
+    const handleImageSelect = (e) => {
+        const files = Array.from(e.target.files);
+
+        if (files.length === 0) return;
+
+        // Validate files
+        const validFiles = files.filter(file => {
+            if (!file.type.startsWith('image/')) {
+                alert(`${file.name} is not an image file`);
+                return false;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                alert(`${file.name} is larger than 5MB`);
+                return false;
+            }
+            return true;
+        });
+
+        setSelectedImages(prev => [...prev, ...validFiles]);
+
+        // Create previews
+        validFiles.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setImagePreviews(prev => [...prev, event.target.result]);
+            };
+            reader.readAsDataURL(file);
+        });
+    };
+
+    // Remove selected image
+    const removeImage = (index) => {
+        setSelectedImages(prev => prev.filter((_, i) => i !== index));
+        setImagePreviews(prev => prev.filter((_, i) => i !== index));
     };
 
     const validateForm = () => {
@@ -55,20 +99,151 @@ const AddProperty = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    const uploadImages = async (propertyId) => {
+        if (!propertyId) {
+            console.error('No property ID provided for image upload');
+            alert('Property created but image upload failed: Invalid property ID');
+            navigate('/');
+            return;
+        }
+
+        if (selectedImages.length === 0) return;
+
+        setUploadingImages(true);
+        try {
+            console.log(`Uploading ${selectedImages.length} images for property ${propertyId}`);
+
+            for (let i = 0; i < selectedImages.length; i++) {
+                const formData = new FormData();
+                formData.append('file', selectedImages[i]);
+                formData.append('caption', '');
+                formData.append('isPrimary', String(i === 0)); // Convert to string
+                formData.append('displayOrder', String(i)); // Convert to string
+
+                console.log(`Uploading image ${i + 1}/${selectedImages.length}`);
+                try {
+                    await propertyImageService.addImage(propertyId, formData);
+                    console.log(`Image ${i + 1} uploaded successfully`);
+                } catch (uploadErr) {
+                    console.warn(`Image ${i + 1} upload with all fields failed, trying with file only...`);
+                    // Fallback: try uploading with just file if fields cause issues
+                    const fallbackFormData = new FormData();
+                    fallbackFormData.append('file', selectedImages[i]);
+
+                    try {
+                        await propertyImageService.addImage(propertyId, fallbackFormData);
+                        console.log(`Image ${i + 1} uploaded successfully with fallback`);
+                    } catch (fallbackErr) {
+                        // Re-throw the fallback error (more accurate) so outer catch can handle it
+                        throw fallbackErr;
+                    }
+                }
+            }
+
+            console.log('All images uploaded successfully');
+            alert('Property and images added successfully!');
+
+            // Clear images after successful upload
+            setSelectedImages([]);
+            setImagePreviews([]);
+
+            setTimeout(() => navigate('/'), 2000);
+        } catch (err) {
+            console.error('Error uploading images:', err);
+            console.error('Error status:', err.response?.status);
+            console.error('Error message:', err.response?.statusText);
+            console.error('Error data:', err.response?.data);
+            console.error('Full error:', JSON.stringify(err, null, 2));
+
+            const errorMsg = err.response?.data?.message || err.response?.statusText || err.message;
+            const statusCode = err.response?.status || 'Unknown';
+
+            alert(`Images failed to upload (Error ${statusCode}): ${errorMsg}. Property was created successfully. You can add images later from the property detail page.`);
+            navigate('/');
+        } finally {
+            setUploadingImages(false);
+        }
+    };
+
+    const handleImageUrlChange = (index, value) => {
+        setImageUrls((prev) => prev.map((u, i) => (i === index ? value : u)));
+    };
+
+    const addImageUrlField = () => {
+        setImageUrls((prev) => [...prev, '']);
+    };
+
+    const removeImageUrlField = (index) => {
+        setImageUrls((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const normalizeUrlList = () => {
+        // Trim and remove empty strings
+        return imageUrls
+            .map((u) => (u || '').trim())
+            .filter((u) => u.length > 0);
+    };
+
+    const uploadImagesByUrl = async (propertyId) => {
+        const urls = normalizeUrlList();
+        if (!propertyId || urls.length === 0) return;
+
+        setUploadingImages(true);
+        try {
+            for (let i = 0; i < urls.length; i++) {
+                const payload = {
+                    imageUrl: urls[i],
+                    caption: '',
+                    isPrimary: i === 0,
+                    displayOrder: i,
+                };
+                await propertyImageService.addImage(propertyId, payload);
+            }
+        } finally {
+            setUploadingImages(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!validateForm()) {
             return;
         }
 
         try {
             setSubmitting(true);
-            await propertyService.createProperty(formData);
+            console.log('Creating property...');
+
+            const response = await propertyService.createProperty(formData);
+            console.log('Property creation response:', response.data);
+
+            // Extract property ID from ApiResponse
+            const created = response.data?.data || response.data;
+            const propertyId = created?.id;
+
+            console.log('Extracted property ID:', propertyId);
+
+            // Primary path: upload by URL (backend requires imageUrl)
+            const urls = normalizeUrlList();
+            if (urls.length > 0) {
+                await uploadImagesByUrl(propertyId);
+                alert('Property and images added successfully!');
+                navigate('/');
+                return;
+            }
+
+            // Fallback: if you selected files, try multipart upload (only works if backend supports it)
+            if (selectedImages.length > 0) {
+                await uploadImages(propertyId);
+                return;
+            }
+
             alert('Property added successfully!');
             navigate('/');
         } catch (err) {
             console.error('Error creating property:', err);
+            console.error('Error details:', err.response?.data || err.message);
             alert('Failed to add property. Please try again.');
         } finally {
             setSubmitting(false);
@@ -242,17 +417,6 @@ const AddProperty = () => {
                         </div>
                     </div>
 
-                    <div className="form-group">
-                        <label>Image URL</label>
-                        <input
-                            type="text"
-                            name="imageUrl"
-                            value={formData.imageUrl}
-                            onChange={handleChange}
-                            placeholder="https://example.com/image.jpg"
-                        />
-                    </div>
-
                     <div className="form-group checkbox-group">
                         <label>
                             <input
@@ -265,9 +429,105 @@ const AddProperty = () => {
                         </label>
                     </div>
 
+                    {/* Image URL Section (Recommended) */}
+                    <div className="image-upload-section">
+                        <h3>🖼️ Property Images (Paste URLs)</h3>
+                        <p>Recommended: Paste image URLs (works with your backend)</p>
+
+                        <div className="url-list">
+                            {imageUrls.map((url, index) => (
+                                <div key={index} className="url-row">
+                                    <input
+                                        type="url"
+                                        value={url}
+                                        placeholder="https://example.com/property-image.jpg"
+                                        onChange={(e) => handleImageUrlChange(index, e.target.value)}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="url-remove-btn"
+                                        onClick={() => removeImageUrlField(index)}
+                                        disabled={imageUrls.length === 1}
+                                        title="Remove"
+                                    >
+                                        ✕
+                                    </button>
+                                    {index === 0 && <span className="primary-badge">Primary</span>}
+                                </div>
+                            ))}
+                        </div>
+
+                        <button type="button" className="url-add-btn" onClick={addImageUrlField}>
+                            ➕ Add another image URL
+                        </button>
+
+                        {/* Optional preview of first URL */}
+                        {normalizeUrlList().length > 0 && (
+                            <div className="url-preview">
+                                <p>Preview (first URL):</p>
+                                <img
+                                    src={normalizeUrlList()[0]}
+                                    alt="Preview"
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                    }}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Existing File Upload Section (Optional) */}
+                    <div className="image-upload-section">
+                        <h3>📸 Property Images (Upload Files - Optional)</h3>
+                        <p>Only works if backend supports file upload endpoint</p>
+
+                        <div className="image-input-wrapper">
+                            <label htmlFor="image-input" className="image-upload-label">
+                                <span>📁 Click to select images or drag and drop</span>
+                                <small>Max 5MB per image, JPG/PNG/WebP</small>
+                            </label>
+                            <input
+                                id="image-input"
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={handleImageSelect}
+                                className="image-input-hidden"
+                            />
+                        </div>
+
+                        {imagePreviews.length > 0 && (
+                            <div className="image-previews">
+                                <h4>Selected Images ({imagePreviews.length})</h4>
+                                <div className="preview-grid">
+                                    {imagePreviews.map((preview, index) => (
+                                        <div key={index} className="preview-item">
+                                            <img src={preview} alt={`Preview ${index + 1}`} />
+                                            <div className="preview-info">
+                                                {index === 0 && <span className="primary-badge">Primary</span>}
+                                                <button
+                                                    type="button"
+                                                    className="remove-btn"
+                                                    onClick={() => removeImage(index)}
+                                                    title="Remove image"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     <div className="form-actions">
-                        <button type="submit" className="submit-btn" disabled={submitting}>
-                            {submitting ? 'Adding Property...' : 'Add Property'}
+                        <button
+                            type="submit"
+                            className="submit-btn"
+                            disabled={submitting || uploadingImages}
+                        >
+                            {submitting || uploadingImages ? 'Adding Property...' : 'Add Property'}
                         </button>
                         <button type="button" onClick={() => navigate('/')} className="cancel-btn">
                             Cancel

@@ -19,16 +19,37 @@ const Favorites = () => {
         if (!userId) return;
         try {
             setLoading(true);
+            console.log(`Fetching favorites for user ${userId}`);
             const response = await favoriteService.getUserFavorites(userId, page, 10);
+            console.log('Favorites API response:', response.data);
+
             const data = response.data || {};
-            // Handle both paginated response and direct array
+            let favoritesList = [];
+            let pages = 0;
+
+            // Handle different response structures
             if (Array.isArray(data)) {
-                setFavorites(data);
-                setTotalPages(1);
-            } else {
-                setFavorites(data.content || []);
-                setTotalPages(data.totalPages || 0);
+                // Direct array response
+                favoritesList = data;
+                pages = 1;
+            } else if (data.content) {
+                // Paginated response
+                favoritesList = data.content || [];
+                pages = data.totalPages || 0;
+            } else if (data.data) {
+                // Data wrapped in data field
+                if (Array.isArray(data.data)) {
+                    favoritesList = data.data;
+                    pages = data.pages || 1;
+                } else if (data.data.content) {
+                    favoritesList = data.data.content;
+                    pages = data.data.totalPages || 0;
+                }
             }
+
+            console.log('Extracted favorites:', favoritesList);
+            setFavorites(favoritesList);
+            setTotalPages(pages);
             setError(null);
         } catch (err) {
             setError('Failed to fetch favorites. Please try again later.');
@@ -47,13 +68,17 @@ const Favorites = () => {
             setLoading(false);
             return;
         }
+        // call the async fetch function directly
         fetchFavorites();
     }, [userId, fetchFavorites]);
 
-    const handleRemoveFavorite = async (favoriteId) => {
+    const handleRemoveFavorite = async (favorite) => {
         if (window.confirm('Are you sure you want to remove this property from favorites?')) {
             try {
-                await favoriteService.removeFavorite(favoriteId);
+                // Remove favorite using userId and propertyId
+                const propertyId = favorite.property ? favorite.property.id : favorite.id;
+                await favoriteService.removeFavorite(userId, propertyId);
+                console.log(`Removed favorite for property ${propertyId}`);
                 await fetchFavorites();
             } catch (err) {
                 setError('Failed to remove favorite.');
@@ -71,7 +96,7 @@ const Favorites = () => {
         try {
             await favoriteService.updateFavoriteNotes(favoriteId, notesText);
             setEditingNotes(null);
-            fetchFavorites();
+            await fetchFavorites();
         } catch (err) {
             setError('Failed to update notes.');
             console.error('Error updating notes:', err);
@@ -105,48 +130,65 @@ const Favorites = () => {
             ) : (
                 <>
                     <div className="favorites-grid">
-                        {favorites.map((favorite) => (
-                            <div key={favorite.id} className="favorite-item">
-                                <PropertyCard property={favorite.property} />
-                                <div className="favorite-actions">
-                                    {editingNotes === favorite.id ? (
-                                        <div className="notes-editor">
-                                            <textarea
-                                                value={notesText}
-                                                onChange={(e) => setNotesText(e.target.value)}
-                                                placeholder="Add notes about this property..."
-                                                rows="3"
+                        {favorites.map((favorite) => {
+                            // Extract property - could be in different places depending on API response
+                            const property = favorite.property || favorite;
+
+                            return (
+                                <div key={favorite.id} className="favorite-item">
+                                    {property && property.id ? (
+                                        <>
+                                            <PropertyCard
+                                                property={property}
+                                                userId={userId}
+                                                showFavoriteButton={true}
                                             />
-                                            <div className="notes-buttons">
-                                                <button onClick={() => handleSaveNotes(favorite.id)} className="btn-save">
-                                                    Save
-                                                </button>
-                                                <button onClick={handleCancelEdit} className="btn-cancel">
-                                                    Cancel
+                                            <div className="favorite-actions">
+                                                {editingNotes === favorite.id ? (
+                                                    <div className="notes-editor">
+                                                        <textarea
+                                                            value={notesText}
+                                                            onChange={(e) => setNotesText(e.target.value)}
+                                                            placeholder="Add notes about this property..."
+                                                            rows="3"
+                                                        />
+                                                        <div className="notes-buttons">
+                                                            <button onClick={() => handleSaveNotes(favorite.id)} className="btn-save">
+                                                                Save
+                                                            </button>
+                                                            <button onClick={handleCancelEdit} className="btn-cancel">
+                                                                Cancel
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="notes-display">
+                                                        {favorite.notes ? (
+                                                            <p className="notes-text">{favorite.notes}</p>
+                                                        ) : (
+                                                            <p className="no-notes">No notes added</p>
+                                                        )}
+                                                        <button onClick={() => handleEditNotes(favorite)} className="btn-edit-notes">
+                                                            {favorite.notes ? 'Edit Notes' : 'Add Notes'}
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                <button
+                                                    onClick={() => handleRemoveFavorite(favorite)}
+                                                    className="btn-remove"
+                                                >
+                                                    Remove from Favorites
                                                 </button>
                                             </div>
-                                        </div>
+                                        </>
                                     ) : (
-                                        <div className="notes-display">
-                                            {favorite.notes ? (
-                                                <p className="notes-text">{favorite.notes}</p>
-                                            ) : (
-                                                <p className="no-notes">No notes added</p>
-                                            )}
-                                            <button onClick={() => handleEditNotes(favorite)} className="btn-edit-notes">
-                                                {favorite.notes ? 'Edit Notes' : 'Add Notes'}
-                                            </button>
+                                        <div className="invalid-property">
+                                            <p>Unable to load property details</p>
                                         </div>
                                     )}
-                                    <button 
-                                        onClick={() => handleRemoveFavorite(favorite.id)} 
-                                        className="btn-remove"
-                                    >
-                                        Remove from Favorites
-                                    </button>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     {totalPages > 1 && (

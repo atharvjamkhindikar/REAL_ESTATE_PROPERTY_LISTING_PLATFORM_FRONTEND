@@ -20,11 +20,14 @@
     background-color: #007bff;
     color: white;
     border: none;
-    padding: 12px 24px;
+    padding: 8px 16px !important;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px !important;
     transition: background-color 0.3s;
+    height: auto;
+    min-height: 32px;
+    line-height: 1.4;
 }
 
 .btn-primary:hover {
@@ -38,6 +41,27 @@
     border-radius: 5px;
     margin-bottom: 20px;
     border: 1px solid #f5c6cb;
+}
+
+.success-message {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 12px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    border: 1px solid #c3e6cb;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Plans Section */
@@ -159,6 +183,7 @@ th {
 td {
     padding: 15px;
     border-bottom: 1px solid #dee2e6;
+    color: #333;
 }
 
 tbody tr:hover {
@@ -410,6 +435,154 @@ tbody tr:hover {
     padding: 50px;
     font-size: 18px;
     color: #6c757d;
+}
+
+.btn-upgrade {
+    padding: 8px 16px;
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-right: 5px;
+    transition: background-color 0.3s;
+}
+
+.btn-upgrade:hover:not(:disabled) {
+    background-color: #138496;
+}
+
+.btn-upgrade:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-cancel-sub {
+    padding: 8px 16px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-right: 5px;
+    transition: background-color 0.3s;
+}
+
+.btn-cancel-sub:hover {
+    background-color: #c82333;
+}
+
+.btn-renew {
+    padding: 8px 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s;
+}
+
+.btn-renew:hover {
+    background-color: #218838;
+}
+
+.toggle-auto-renew {
+    padding: 6px 12px;
+    background-color: #e9ecef;
+    color: #495057;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.toggle-auto-renew:hover {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+/* User Details Styling */
+.user-name {
+    font-weight: 600;
+    color: #333;
+    min-width: 150px;
+}
+
+.user-email {
+    color: #6c757d;
+    font-size: 13px;
+    min-width: 180px;
+}
+
+/* Table Row Styling */
+.row-active {
+    background-color: #e8f5e9;
+}
+
+.row-inactive {
+    background-color: #ffebee;
+}
+
+tbody tr {
+    color: #333;
+}
+
+tbody tr td {
+    color: #333;
+}
+
+.row-active:hover {
+    background-color: #c8e6c9;
+}
+
+.row-inactive:hover {
+    background-color: #ffcccc;
+}
+
+/* Date and Price Cells */
+.date-cell {
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    min-width: 100px;
+}
+
+.price-cell {
+    font-weight: 600;
+    color: #28a745;
+    text-align: right;
+    min-width: 80px;
+}
+
+/* No Subscriptions Message */
+.no-subscriptions {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+    font-size: 16px;
+}
+
+/* Badge Styling Updates */
+.badge-inactive {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Toggle Auto Renew Button Updates */
+.toggle-auto-renew.enabled {
+    background-color: #d4edda;
+    color: #155724;
+    border-color: #28a745;
+}
+
+.toggle-auto-renew.disabled {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #dc3545;
 }
 
 @media (max-width: 768px) {

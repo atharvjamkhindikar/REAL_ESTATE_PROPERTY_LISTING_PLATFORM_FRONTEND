@@ -221,6 +221,20 @@
     color: #6c757d;
 }
 
+.invalid-property {
+    padding: 30px;
+    text-align: center;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    color: #6c757d;
+}
+
+.invalid-property p {
+    margin: 0;
+    font-size: 14px;
+}
+
 @media (max-width: 768px) {
     .favorites-grid {
         grid-template-columns: 1fr;
