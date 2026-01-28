@@ -3,5 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/REAL_ESTATE_PROPERTY_LISTING_FRONTEND" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/REAL_ESTATE_PROPERTY_LISTING_PLATFORM_FRONTEND" vcs="Git" />
   </component>
 </project>
