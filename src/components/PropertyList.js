@@ -2,7 +2,9 @@ import React, {useEffect, useState} from 'react';
 import {propertyService} from '../services/api';
 import {useAuth} from '../context/AuthContext';
 import PropertyCard from './PropertyCard';
+import ConnectionError from './ConnectionError';
 import './PropertyList.css';
+
 
 const PropertyList = () => {
     const [properties, setProperties] = useState([]);
@@ -21,6 +23,8 @@ const PropertyList = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+   
+    
     const fetchProperties = async () => {
         try {
             setLoading(true);
@@ -31,7 +35,7 @@ const PropertyList = () => {
             setProperties(Array.isArray(data) ? data : (data.content || []));
             setError(null);
         } catch (err) {
-            setError('Failed to fetch properties. Please try again later.');
+            setError(err);
             console.error('Error fetching properties:', err);
         } finally {
             setLoading(false);
@@ -74,7 +78,7 @@ const PropertyList = () => {
     }
 
     if (error) {
-        return <div className="error">{error}</div>;
+        return <ConnectionError error={error} />;
     }
 
     return (
