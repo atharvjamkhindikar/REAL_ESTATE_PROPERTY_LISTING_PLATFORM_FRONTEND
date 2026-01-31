@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://13.220.57.64:8080/api';
+const API_BASE_URL = 'http:/ec2-13-220-57-64.compute-1.amazonaws.com:8080/api';
 
 export const API_ENDPOINTS = {
   // Authentication
