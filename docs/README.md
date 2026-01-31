@@ -48,27 +48,12 @@ The application is designed to work seamlessly with the Spring Boot + MySQL back
 
 
 [ React Frontend ]
-
-
         |
-
-        
         |  HTTP (REST APIs via Axios)
-
-        
         v
-
         
 [ Spring Boot Backend ]
-
-
         |
-
-        
         |  JPA / Hibernate
-
-        
         v
-
-        
 [ MySQL Database ]
